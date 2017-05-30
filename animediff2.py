@@ -8,7 +8,7 @@ def export_movie():
     # 入力する動画と出力パスを指定。
     target1 = "XXXX.mp4"
     #動画1の何フレーム目からを参照するか
-    delay1 = 2083
+    delay1 = 2082
     target2 = "XXXX.mp4"
     #動画2の何フレームメカラを参照するか
     delay2 = 3498
@@ -33,21 +33,20 @@ def export_movie():
         ret1,frame1 = movie1.read()
     else:
         ret1 = False
-    #指定したフレームまでスキップ
-    for _ in range(delay1):
-        ret1,frame1 = movie1.read()
 
     if movie2.isOpened() == True:
         ret2,frame2 = movie2.read()
     else:
         ret2 = False
-    for _ in range(delay2):
-        ret2,frame2 = movie2.read()
+
+    #指定したフレームまでスキップ
+    movie1.set(cv2.CAP_PROP_POS_FRAMES, delay1)
+    movie2.set(cv2.CAP_PROP_POS_FRAMES, delay2)
 
     # フレームの読み込みに成功している間フレームを書き出し続ける
     frame_number = 1
     #2200フレームだけキャプチャし動画化する
-    while ret1 and frame_number < 2200:
+    while ret1 and frame_number < 100:
 
         # 読み込んだフレームの差分をとり、書き込み
         out.write(cv2.absdiff(frame1, frame2))
@@ -57,7 +56,6 @@ def export_movie():
         ret2,frame2 = movie2.read()
         frame_number += 1
     print('finished')
-
 
 if __name__ == '__main__':
     export_movie()
