@@ -33,10 +33,7 @@ images_a = np.asarray(images)
 imgmed = [[[0 for i in range(shape[2])]for i in range(shape[1])]for i in range(shape[0])]
 
 #for文ブン回して次々に最頻値を計算し入れていく
-for i in range(shape[0]):
-    for j in range(shape[1]):
-        for k in range(shape[2]):
-            imgmed[i][j][k] = np.median(images_a[:, i, j, k])
+imgmed = np.median(images_a, axis=0)
 
 #出来上がった画像を保存
 cv2.imwrite("XXXX", np.asarray(imgmed))
