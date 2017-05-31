@@ -35,11 +35,7 @@ images_a = np.asarray(images)
 #計算した最頻値を格納していく3次元リストを初期化しておく
 imgmed = [[[0 for i in range(shape[2])]for i in range(shape[1])]for i in range(shape[0])]
 
-<<<<<<< HEAD
 #最頻値を計算
-=======
-#for文ブン回して次々に最頻値を計算し入れていく
->>>>>>> 2f19dbde92041c7eeeccd829a2b675c10861adbd
 imgmed = np.median(images_a, axis=0)
 
 #出来上がった画像を保存
