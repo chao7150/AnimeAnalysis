@@ -4,6 +4,8 @@ import numpy as np
 import cv2
 import sys
 
+#ビデオの何フレーム目からを対象にするか
+START = 511
 #ビデオの最初の何フレーム間を対象にするか
 FRAME = 100
 
@@ -15,6 +17,7 @@ if cap.isOpened() != True:
 
 images = []
 frame_number = 1
+cap.set(cv2.CAP_PROP_POS_FRAMES, START)
 
 #動画の最初からFRAME番目のフレームまでをキャプチャしimages配列に入れる
 while cap.isOpened() and frame_number <= FRAME:
@@ -32,7 +35,11 @@ images_a = np.asarray(images)
 #計算した最頻値を格納していく3次元リストを初期化しておく
 imgmed = [[[0 for i in range(shape[2])]for i in range(shape[1])]for i in range(shape[0])]
 
+<<<<<<< HEAD
+#最頻値を計算
+=======
 #for文ブン回して次々に最頻値を計算し入れていく
+>>>>>>> 2f19dbde92041c7eeeccd829a2b675c10861adbd
 imgmed = np.median(images_a, axis=0)
 
 #出来上がった画像を保存
