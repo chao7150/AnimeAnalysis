@@ -1,11 +1,10 @@
-import numpy as np
 import cv2
 import tkinter as tk
 from tkinter import filedialog
 
-#グローバル
-SKIP_ARRAY = [-14400, -1440, -240, -24, -10, -1, 1, 10, 24, 240, 1440, 14400]
-SKIP_TEXT  = ["10m", "1m", "10s", "1s", "10f", "1f", "1f", "10f", "1s", "10s", "1m", "10m"]
+#フレームジャンプ幅の既定値
+SKIP_ARRAY = [-100, -50, -10, -5, -1, 1, 5, 10, 50, 100]
+#画面サイズ（16:9）
 SIZE = (480, 270)
 
 class Application(tk.Frame):
@@ -14,106 +13,108 @@ class Application(tk.Frame):
         self.pack()
         self.create_widgets()
 
+    #GUI作る
     def create_widgets(self):
-        f0 = tk.Frame(self)
-        self.cm_button = tk.Button(f0, text = "choose movie file", command = self.choose_movie) #Applicationが親
-        self.cm_button.pack()
-        f0.pack()
-
+        #GUIの1行目
         f1 = tk.Frame(self)
-        self.skip_buttons = [0]*12
-        self.start_button = tk.Button(f1, text = u"←", command = lambda:self.skip(- self.win.getframe()))
-        self.skip_buttons[0] = tk.Button(f1, text = SKIP_TEXT[0], command = lambda:self.skip(SKIP_ARRAY[0]))
-        self.skip_buttons[1] = tk.Button(f1, text = SKIP_TEXT[1], command = lambda:self.skip(SKIP_ARRAY[1]))
-        self.skip_buttons[2] = tk.Button(f1, text = SKIP_TEXT[2], command = lambda:self.skip(SKIP_ARRAY[2]))
-        self.skip_buttons[3] = tk.Button(f1, text = SKIP_TEXT[3], command = lambda:self.skip(SKIP_ARRAY[3]))
-        self.skip_buttons[4] = tk.Button(f1, text = SKIP_TEXT[4], command = lambda:self.skip(SKIP_ARRAY[4]))
-        self.skip_buttons[5] = tk.Button(f1, text = SKIP_TEXT[5], command = lambda:self.skip(SKIP_ARRAY[5]))
-        self.skip_buttons[6] = tk.Button(f1, text = SKIP_TEXT[6], command = lambda:self.skip(SKIP_ARRAY[6]))
-        self.skip_buttons[7] = tk.Button(f1, text = SKIP_TEXT[7], command = lambda:self.skip(SKIP_ARRAY[7]))
-        self.skip_buttons[8] = tk.Button(f1, text = SKIP_TEXT[8], command = lambda:self.skip(SKIP_ARRAY[8]))
-        self.skip_buttons[9] = tk.Button(f1, text = SKIP_TEXT[9], command = lambda:self.skip(SKIP_ARRAY[9]))
-        self.skip_buttons[10] = tk.Button(f1, text = SKIP_TEXT[10], command = lambda:self.skip(SKIP_ARRAY[10]))
-        self.skip_buttons[11] = tk.Button(f1, text = SKIP_TEXT[11], command = lambda:self.skip(SKIP_ARRAY[11]))
-        self.end_button = tk.Button(f1, text = u"→", command = lambda:self.skip(self.win.videolength() - self.win.getframe()))
-
-        self.start_button.pack(side = tk.LEFT)
-        for i in self.skip_buttons:
-            i.pack(side = tk.LEFT)
-        self.end_button.pack()
-        # for l in zip(SKIP_ARRAY, SKIP_TEXT):
-        #     self.skip_buttons.append(tk.Button(f1,text = l[1], command = lambda:self.skip(l[0])))
-        #     self.skip_buttons[len(self.skip_buttons) - 1].pack(side = tk.LEFT)
+        #動画ファイル読み込みボタン
+        self.choose_button = tk.Button(f1, text = "choose movie file", command = self.load_movie)
+        self.choose_button.pack()
         f1.pack()
 
+        #GUIの2行目
         f2 = tk.Frame(self)
-        self.position_label1 = tk.Label(f2, text = "frame count:")
-        self.position_label2 = tk.Label(f2)
-        self.position_label3 = tk.Label(f2, text = " / ")
-        self.position_label4 = tk.Label(f2)
-        self.position_label1.pack(side = tk.LEFT)
-        self.position_label2.pack(side = tk.LEFT)
-        self.position_label3.pack(side = tk.LEFT)
-        self.position_label4.pack(side = tk.LEFT)
+        #1フレーム目ジャンプボタン
+        self.start_button = tk.Button(f2, text = u"←", command = lambda: self.jump(0))
+        #最終フレームジャンプボタン
+        self.end_button   = tk.Button(f2, text = u"→", command = lambda: self.jump(self.length))
+        self.start_button.pack(side = tk.LEFT)
+        #現在のフレームから一定フレームジャンプするボタン
+        self.skip_buttons = []
+        for i in SKIP_ARRAY:
+            self.skip_buttons.append(tk.Button(f2, text = str(i), command = self.button_cmd(i)))
+            self.skip_buttons[-1].pack(side = tk.LEFT)
+        self.end_button.pack(side = tk.LEFT)
         f2.pack()
 
-    def skip(self, l):
-        frame_number = self.win.getframe()
-        frame_number += l
-        self.win.setframe(frame_number)
-        self.win.showframe()
-        self.position_label2.config(text = str(self.win.getframe()))
+        #GUIの3行目
+        f3 = tk.Frame(self)
+        #4つのラベルで"frame count X / Y"という形式を作る
+        self.position_label1  = tk.Label(f3, text = "frame count")
+        self.currentpos_label = tk.Label(f3)
+        self.position_label2  = tk.Label(f3, text = " / ")
+        self.max_label        = tk.Label(f3)
+        self.position_label1.pack(side = tk.LEFT)
+        self.currentpos_label.pack(side = tk.LEFT)
+        self.position_label2.pack(side = tk.LEFT)
+        self.max_label.pack(side = tk.LEFT)
+        f3.pack()
 
-    def choose_movie(self):
+    #同じコールバック関数の引数を変えて使いまわすときなぜかこうしないとうまくいかない
+    def button_cmd(self, i):
+        def nest():
+            self.move(i)
+        return nest
+
+    def load_movie(self):
+        #ダイアログから動画ファイルを選択
         self.movie_filename = filedialog.askopenfilename()
-        print(self.movie_filename)
-        self.cm_button.configure(text = self.movie_filename)
-        self.win = Playwindow(self.movie_filename)
-        self.position_label4.configure(text = str(self.win.videolength()))
-        self.skip(0)
+        #読み込みが成功した場合
+        if self.movie_filename:
+            #ボタンに読み込んだファイル名を載せる
+            self.choose_button.configure(text = self.movie_filename)
+            #openCVで動画を読み込む
+            self.cap = cv2.VideoCapture(self.movie_filename)
+            #openCVの総フレーム数取得は間違うので正確な総フレーム数を求める
+            self.length = self.precise_length()
+            #取得した総フレーム数をラベルに載せる
+            self.max_label.configure(text = str(self.length))
+            #デフォルト位置は動画冒頭
+            self.frame_number = 0
+            #画面を映す
+            self.showframe()
 
-class Playwindow:
-    def __init__(self, movie_filename):
-        self.size = SIZE
-        self.frame_number = 0
-        self.cap = cv2.VideoCapture(movie_filename)
-        self.length = self.decide_length()
-        if self.cap.isOpened() != True:
-            print("file not found")
-
-    def decide_length(self):
+    #正確な総フレーム数を求めるための関数
+    def precise_length(self):
+        #cap.getで得られる総フレーム数は実際よりも数フレーム多い
         candidate = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        #cap.getで得られたフレームを1ずつ減らしながら読み込める一番後ろのフレームを探す
         while True:
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, candidate)
             if self.cap.grab():
                 return candidate
             candidate -= 1
 
-    def getframe(self):
-        return self.frame_number
-
-    def setframe(self, frame_number):
-        self.frame_number = frame_number
-        print(self.frame_number)
-
-    def videolength(self):
-        return self.length
-
+    #現在位置のフレームを動画から読み出し画面に表示する
     def showframe(self):
+        #読めないフレームを読もうとしないように条件分岐
         if self.frame_number > self.length:
             self.frame_number = self.length
         elif self.frame_number < 0:
             self.frame_number = 0
 
+        #読むべきフレームをcapに教える
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.frame_number)
+        #フレームを読み出す
         ret, frame = self.cap.read()
-        print(ret)
-
+        #何フレーム目を読み出しているかラベルに表示する
+        self.currentpos_label.configure(text = str(self.frame_number))
+        #読み出したフレームをリサイズして画面に表示する
         cv2.imshow("show window", self.resize(frame))
-        cv2.waitKey(60)
 
+    #リサイズ
     def resize(self, frame):
-        return cv2.resize(frame, self.size)
+        return cv2.resize(frame, SIZE)
+
+    #フレームの絶対位置を指定して移動し表示する
+    def jump(self, dest):
+        self.frame_number = dest
+        self.showframe()
+
+    #フレームの相対位置を指定して移動し表示する
+    def move(self, step):
+        self.frame_number += step
+        self.showframe()
 
 if __name__ == "__main__":
     root = tk.Tk()
