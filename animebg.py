@@ -5,9 +5,9 @@ import cv2
 import sys
 
 #ビデオの何フレーム目からを対象にするか
-START = 511
+START = XXXX
 #ビデオの最初の何フレーム間を対象にするか
-FRAME = 100
+FRAME = XXXX
 
 #ビデオ読み込み
 cap = cv2.VideoCapture("XXXX")
@@ -16,7 +16,7 @@ if cap.isOpened() != True:
     sys.exit()
 
 images = []
-frame_number = 1
+frame_number = START
 cap.set(cv2.CAP_PROP_POS_FRAMES, START)
 
 #動画の最初からFRAME番目のフレームまでをキャプチャしimages配列に入れる
@@ -39,4 +39,4 @@ imgmed = [[[0 for i in range(shape[2])]for i in range(shape[1])]for i in range(s
 imgmed = np.median(images_a, axis=0)
 
 #出来上がった画像を保存
-cv2.imwrite("XXXX", np.asarray(imgmed))
+cv2.imwrite("XXXX.png", np.asarray(imgmed))
