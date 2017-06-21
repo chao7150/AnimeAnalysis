@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 #フレームジャンプ幅の既定値
-SKIP_ARRAY = [-100, -50, -10, -5, -1, 1, 5, 10, 50, 100]
+SKIP_ARRAY = [-1000, -100, -50, -10, -5, -1, 1, 5, 10, 50, 100, 1000]
 #画面サイズ（16:9）
 SIZE = (480, 270)
 
