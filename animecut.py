@@ -40,8 +40,9 @@ def is_different_cut(image1, image2, cutoff, log, frame_number, fps_video):
     else:
         return 0
 
-def collect_img(cap, log, fps, extension, save_dir, cutoff, fps_video):
-    frame_number = 1
+def collect_img(cap, log, fps, extension, save_dir, cutoff, fps_video, start_frame, end_frame):
+    frame_number = start_frame
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
     img_number = 1
     ret, image1 = cap.read()
     file_name = '{0}.{1}'.format(img_number, extension)
@@ -49,7 +50,7 @@ def collect_img(cap, log, fps, extension, save_dir, cutoff, fps_video):
     cv2.imwrite(path, image1)
     img_number += 1
     #while内で1フレームごとの処理
-    while(cap.isOpened()):
+    while(cap.isOpened() and frame_number <= end_frame):
         frame_number += 1
         ret, image2 = cap.read()
         if not ret:
@@ -65,7 +66,7 @@ def collect_img(cap, log, fps, extension, save_dir, cutoff, fps_video):
 
     return img_number
 
-def start(video_path, save_dir, extension = 'png', resize_size = (320, 180), fps = 1, resize = True, cutoff = 40):
+def start(video_path, save_dir, start_frame, end_frame, extension = 'png', resize_size = (320, 180), fps = 1, resize = True, cutoff = 40):
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
@@ -73,7 +74,7 @@ def start(video_path, save_dir, extension = 'png', resize_size = (320, 180), fps
     log = Logger(save_dir)
     cap = cv2.VideoCapture(video_path)
     fps_video = cap.get(5)
-    img_numbers = collect_img(cap, log, fps, extension, save_dir, cutoff, fps_video)
+    img_numbers = collect_img(cap, log, fps, extension, save_dir, cutoff, fps_video, start_frame, end_frame)
     cap.release()
     log.end()
     print('capture finished', img_numbers)
@@ -89,4 +90,6 @@ if __name__ == "__main__":
     print(movie_filename)
     cutoff = input('cutoff difference(30~40 recommended) : ')
     save_dir = input('save folder name : ')
-    start(movie_filename, save_dir = save_dir, cutoff = int(cutoff))
+    start_frame = input('from which frame? :')
+    end_frame = input('to which frame? :')
+    start(movie_filename, save_dir, int(start_frame), int(end_frame), cutoff = int(cutoff))
