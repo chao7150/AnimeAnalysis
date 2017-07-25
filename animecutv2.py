@@ -8,8 +8,13 @@ def output(cap, cutpoints, save_dir):
         os.mkdir(save_dir)
 
     img_num = 1
-    for p in cutpoints:
-        cap.set(cv2.CAP_PROP_POS_FRAMES, p)
+    for n in len(cutpoints):
+        #最後のカット以外はカットの中央のフレームをサムネイルにする
+        if n != len(cutpoints):
+            thum = int((cutpoints[n] + cutpoints[n + 1]) / 2)
+        else:
+            thum = cutpoints[n]
+        cap.set(cv2.CAP_PROP_POS_FRAMES, cutpoints[thum])
         ret, image = cap.read()
         image = cv2.resize(image, (800, 450))
         num_pud = '{0:04d}'.format(img_num)
