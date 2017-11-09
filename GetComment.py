@@ -49,12 +49,13 @@ thread_id = qs['thread_id'][0] #thread_id
 user_id = qs['user_id'][0]
 print(thread_id , user_id)
 #print(body)
-sys.exit()
 mc = re.compile(r'&ms=http%3A%2F%2F(.+?)\.nicovideo\.jp(%2F.+?)&').search(body.decode('utf-8'))
 
 message_server = urllib.parse.unquote_plus(mc.group(1))
+print(message_server)
 message_path = urllib.parse.unquote_plus(mc.group(2))
-
+print(message_path)
+sys.exit()
 #公式動画以外の取得では使わない
 if videoid.find("sm") == 0:
     thread_key = None
