@@ -31,7 +31,7 @@ rs.close()
 conn.close()
 
 #動画情報の取得
-videoid='sm30933340' #kemono_friends_ep1
+videoid='sm13403834' #kemono_friends_ep1
 
 conn = http.client.HTTPConnection('flapi.nicovideo.jp', 80)
 conn.request('GET', '/api/getflv/%s' % videoid, '', headers)

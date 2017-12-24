@@ -97,10 +97,12 @@ class Application(tk.Frame):
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.frame_number)
         #フレームを読み出す
         ret, frame = self.cap.read()
+        print(ret)
         #何フレーム目を読み出しているかラベルに表示する
         self.currentpos_label.configure(text = str(self.frame_number))
         #読み出したフレームをリサイズして画面に表示する
         cv2.imshow("show window", self.resize(frame))
+        cv2.waitkey()
 
     #リサイズ
     def resize(self, frame):
