@@ -3,3 +3,4 @@ travel.mp4
 log*
 __pycache__
 resource
+*.csv*
