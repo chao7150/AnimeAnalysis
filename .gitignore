@@ -1,7 +1,9 @@
 key.py
 travel.mp4
 log*
-__pycache__
+*__pycache__
 resource
 *.csv*
 output/
+*.vscode*
+
